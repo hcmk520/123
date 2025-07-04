@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录与注册</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: white; padding: 2em; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.1); width: 320px; }
+        h2 { text-align: center; color: #333; }
+        .form-group { margin-bottom: 1em; }
+        label { display: block; margin-bottom: 0.5em; color: #555; }
+        input { width: 100%; padding: 0.8em; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 0.8em; border: none; border-radius: 4px; background-color: #5c67f2; color: white; font-size: 1em; cursor: pointer; }
+        button:hover { background-color: #4a54d1; }
+        #message { margin-top: 1em; text-align: center; font-weight: bold; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="auth-form">
+            <h2 id="form-title">登录</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-username">用户名</label>
+                    <input type="text" id="login-username" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">密码</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <button type="submit">登录</button>
+            </form>
+            <form id="register-form" style="display:none;">
+                <div class="form-group">
+                    <label for="register-username">用户名</label>
+                    <input type="text" id="register-username" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-password">密码</label>
+                    <input type="password" id="register-password" required>
+                </div>
+                <button type="submit">注册</button>
+            </form>
+            <p id="message"></p>
+            <p style="text-align:center; margin-top: 1em;">
+                <a href="#" id="toggle-link">没有账户？去注册</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const toggleLink = document.getElementById('toggle-link');
+        const formTitle = document.getElementById('form-title');
+        const messageDiv = document.getElementById('message');
+
+        toggleLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (loginForm.style.display === 'none') {
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+                formTitle.textContent = '登录';
+                toggleLink.textContent = '没有账户？去注册';
+            } else {
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'block';
+                formTitle.textContent = '注册';
+                toggleLink.textContent = '已有账户？去登录';
+            }
+            messageDiv.textContent = '';
+        });
+
+        async function handleFormSubmit(event, url) {
+            event.preventDefault();
+            const form = event.target;
+            const username = form.querySelector('input[type="text"]').value;
+            const password = form.querySelector('input[type="password"]').value;
+            messageDiv.textContent = '';
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    messageDiv.className = 'success';
+                } else {
+                    messageDiv.className = 'error';
+                }
+                messageDiv.textContent = data.message;
+            } catch (error) {
+                messageDiv.className = 'error';
+                messageDiv.textContent = '请求失败，请检查网络连接。';
+            }
+        }
+
+        registerForm.addEventListener('submit', (e) => handleFormSubmit(e, '/api/register'));
+        loginForm.addEventListener('submit', (e) => handleFormSubmit(e, '/api/login'));
+    </script>
+</body>
+</html>
